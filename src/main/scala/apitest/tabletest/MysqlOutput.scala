@@ -57,19 +57,20 @@ object MysqlOutput {
       .groupBy('id)
       .select('id, 'id.count as 'count, 'temp.sum as 'sum_temp)
 
-    tableEnv.executeSql("CREATE TABLE jdbcOutputTable (\n" +
-      "    id varchar(20) not null,\n" +
-      "    cnt bigint not null,\n" +
-      "    sum_temp double not null,\n" +
-      "    PRIMARY KEY (id) NOT ENFORCED" +
-      ") WITH (\n" +
-      "   'connector'  = 'jdbc',\n" +
-      "   'url'        = 'jdbc:mysql://175.24.152.40:33190/ads',\n" +
-      "   'table-name' = 'myOutputTable',\n" +
-      "   'driver'     = 'com.mysql.jdbc.Driver',\n" +
-      "   'username'   = 'yaoshun',\n" +
-      "   'password'   = 'vp^98*s$UpTRsebf'\n" +
-      ")")
+    tableEnv.executeSql(
+      """CREATE TABLE jdbcOutputTable(
+        |id varchar(20) not null,
+        |cnt bigint not null,
+        |sum_temp double not null,
+        |PRIMARY KEY (id) NOT ENFORCED
+        |) WITH(
+        |'connector'  = 'jdbc',
+        |'url'        = 'jdbc:mysql://175.24.152.40:33190/ads',
+        |'table-name' = 'myOutputTable',
+        |'driver'     = 'com.mysql.jdbc.Driver',
+        |'username'   = 'yaoshun',
+        |'password'   = 'vp^98*s$UpTRsebf'
+        |)""".stripMargin)
 
     aggTable.executeInsert("jdbcOutputTable")
 
