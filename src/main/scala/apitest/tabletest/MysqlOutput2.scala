@@ -5,7 +5,7 @@ import org.apache.flink.table.api._
 import org.apache.flink.table.descriptors.{Csv, FileSystem, Schema}
 import org.apache.flink.table.api.bridge.scala.StreamTableEnvironment
 
-object MysqlOutput {
+object MysqlOutput2 {
   def main(args: Array[String]): Unit = {
     // 1. 创建环境
     val env = StreamExecutionEnvironment.getExecutionEnvironment
@@ -25,6 +25,27 @@ object MysqlOutput {
       )
       .createTemporaryTable("inputTable")
 
+    /*    tableEnv.executeSql("CREATE TABLE inputTable (" +
+          "  id STRING," +
+          "  timesp BIGINT," +
+          "  temp DOUBLE" +
+          ") WITH (" +
+          "  'connector' = 'filesystem'," +
+          "  'path' = 'E:\\FlinkProject\\src\\main\\resources\\sensor.txt'," +
+          "  'format' = 'csv'" +
+          ")")*/
+
+    //    val outputPath = "E:\\FlinkProject\\src\\main\\resources\\output.txt"
+    //    tableEnv.executeSql("CREATE TABLE outputTable (" +
+    //      "  id STRING," +
+    //      "  timesp BIGINT," +
+    //      "  temp DOUBLE" +
+    //      ") WITH (" +
+    //      "  'connector' = 'filesystem'," +
+    //      "  'path' = 'outputPath'," +
+    //      "  'format' = 'csv'" +
+    //      ")")
+
     //Table API
     //3. 转换操作,转成 Table类
     val sensorTable: Table = tableEnv.from("inputTable")
@@ -41,11 +62,11 @@ object MysqlOutput {
 
     //sqlQuery
     val aggTable2 = tableEnv.sqlQuery("""
-        |select id, count(id) as cnt, sum(temp) as sum_temp
-        |from inputTable
-        |where id = 'sensor_1'
-        |group by id
-        |""".stripMargin)
+                                        |select id, count(id) as cnt, sum(temp) as sum_temp
+                                        |from inputTable
+                                        |where id = 'sensor_1'
+                                        |group by id
+                                        |""".stripMargin)
 
     //注册输出表
     tableEnv.executeSql(
