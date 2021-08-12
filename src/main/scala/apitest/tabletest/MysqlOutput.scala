@@ -14,7 +14,7 @@ object MysqlOutput {
     val settings = EnvironmentSettings.newInstance().useBlinkPlanner().inStreamingMode().build()
     val tableEnv = StreamTableEnvironment.create(env, settings)
 
-    // 2. 连接外部系统，读取数据，注册表
+    // 2. 连接外部系统，读取数据，创建输入表
     val filePath = "E:\\FlinkProject\\src\\main\\resources\\sensor.txt"
 
     tableEnv.connect(new FileSystem().path(filePath))
@@ -46,17 +46,29 @@ object MysqlOutput {
 //      "  'format' = 'csv'" +
 //      ")")
 
+    //Table API
     //3. 转换操作,转成 Table类
     val sensorTable: Table = tableEnv.from("inputTable")
+
     //3.1 简单转换
     val resultTable = sensorTable
       .select('id, 'timesp, 'temp)
       .filter('id === "sensor_1")
-
+    //3.2 聚合转换
     val aggTable = sensorTable
+      .filter('id === "sensor_1")
       .groupBy('id)
       .select('id, 'id.count as 'count, 'temp.sum as 'sum_temp)
 
+    //sqlQuery
+    val aggTable2 = tableEnv.sqlQuery("""
+        |select id, count(id) as cnt, sum(temp) as sum_temp
+        |from inputTable
+        |where id = 'sensor_1'
+        |group by id
+        |""".stripMargin)
+
+    //注册输出表
     tableEnv.executeSql(
       """CREATE TABLE jdbcOutputTable(
         |id varchar(20) not null,
@@ -72,7 +84,7 @@ object MysqlOutput {
         |'password'   = 'vp^98*s$UpTRsebf'
         |)""".stripMargin)
 
-    aggTable.executeInsert("jdbcOutputTable")
+    aggTable2.executeInsert("jdbcOutputTable")
 
   }
 }
