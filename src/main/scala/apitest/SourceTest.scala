@@ -5,7 +5,6 @@ import java.util.Properties
 import org.apache.flink.api.common.serialization.SimpleStringSchema
 import org.apache.flink.streaming.api.functions.source.SourceFunction
 import org.apache.flink.streaming.api.scala._
-import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer011
 
 import scala.util.Random
 
@@ -36,7 +35,7 @@ object SourceTest {
     val properties = new Properties()
     properties.setProperty("bootstrap.servers", "localhost:9092")
     properties.setProperty("group.id", "consumer-group")
-    val stream3 = env.addSource( new FlinkKafkaConsumer011[String]("sensor", new SimpleStringSchema(), properties) )
+    //val stream3 = env.addSource( new FlinkKafkaConsumer011[String]("sensor", new SimpleStringSchema(), properties) )
 
     // 4. 自定义Source
     val stream4 = env.addSource( new MySensorSource() )
@@ -44,7 +43,7 @@ object SourceTest {
     stream4.print()
 
     // 执行
-    env.execute("source test")
+    //env.execute("source test")
   }
 }
 
