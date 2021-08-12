@@ -15,25 +15,16 @@ object MysqlOutput2 {
     val tableEnv = StreamTableEnvironment.create(env, settings)
 
     // 2. 连接外部系统，读取数据，创建输入表
-    val filePath = "E:\\FlinkProject\\src\\main\\resources\\sensor.txt"
-
-    tableEnv.connect(new FileSystem().path(filePath))
-      .withFormat(new Csv())
-      .withSchema(new Schema().field("id", DataTypes.STRING())
-        .field("timesp", DataTypes.BIGINT())
-        .field("temp", DataTypes.DOUBLE())
-      )
-      .createTemporaryTable("inputTable")
-
-    /*    tableEnv.executeSql("CREATE TABLE inputTable (" +
-          "  id STRING," +
-          "  timesp BIGINT," +
-          "  temp DOUBLE" +
-          ") WITH (" +
-          "  'connector' = 'filesystem'," +
-          "  'path' = 'E:\\FlinkProject\\src\\main\\resources\\sensor.txt'," +
-          "  'format' = 'csv'" +
-          ")")*/
+    tableEnv.executeSql(
+      """CREATE TABLE inputTable(
+        |id STRING,
+        |timesp BIGINT ,
+        |temp DOUBLE
+        |) WITH(
+        |'connector' = 'filesystem',
+        |'path'      = '/Users/lemon/IdeaProjects/FlinkTutorial/src/main/resources/sensor.txt',
+        |'format'    = 'csv'
+        |)""".stripMargin)
 
     //    val outputPath = "E:\\FlinkProject\\src\\main\\resources\\output.txt"
     //    tableEnv.executeSql("CREATE TABLE outputTable (" +
@@ -68,7 +59,7 @@ object MysqlOutput2 {
                                         |group by id
                                         |""".stripMargin)
 
-    //注册输出表
+    //注册输出表-mysql
     tableEnv.executeSql(
       """CREATE TABLE jdbcOutputTable(
         |id varchar(20) not null,
@@ -84,7 +75,21 @@ object MysqlOutput2 {
         |'password'   = 'vp^98*s$UpTRsebf'
         |)""".stripMargin)
 
+    //输出到文件
+    tableEnv.executeSql(
+      """CREATE TABLE outputTable(
+        |id STRING,
+        |timesp BIGINT ,
+        |temp DOUBLE
+        |) WITH(
+        |'connector' = 'filesystem',
+        |'path'      = '/Users/lemon/IdeaProjects/FlinkTutorial/src/main/resources/output',
+        |'format'    = 'csv'
+        |)""".stripMargin)
+
     aggTable2.executeInsert("jdbcOutputTable")
+
+    resultTable.executeInsert("outputTable")
 
   }
 }
