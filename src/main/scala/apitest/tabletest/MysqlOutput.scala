@@ -15,7 +15,8 @@ object MysqlOutput {
     val tableEnv = StreamTableEnvironment.create(env, settings)
 
     // 2. 连接外部系统，读取数据，创建输入表
-    val filePath = "E:\\FlinkProject\\src\\main\\resources\\sensor.txt"
+    //val filePath = "E:\\FlinkProject\\src\\main\\resources\\sensor.txt"
+    val filePath = "/Users/lemon/IdeaProjects/FlinkTutorial/src/main/resources/sensor.txt"
 
     tableEnv.connect(new FileSystem().path(filePath))
       .withFormat(new Csv())
