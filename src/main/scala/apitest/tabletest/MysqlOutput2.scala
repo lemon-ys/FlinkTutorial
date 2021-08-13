@@ -83,7 +83,7 @@ object MysqlOutput2 {
     // 该方法通过名称在 catalog中查找TableSink, 并确认Table schema 和 TableSink schema 一致.
     aggTable2.executeInsert("jdbcOutputTable")
 
-    //直接将表环境里注册的输入表的Query查询结果插入到已注册的外部输出表(TableSink)
+    //5.3 直接将表环境里注册的输入表的Query查询结果插入到已注册的外部输出表(TableSink)
     tableEnv.executeSql(
       """insert into jdbcOutputTable
         |select id, count(id) as cnt, sum(temp) as sum_temp
