@@ -7,7 +7,7 @@ import org.apache.flink.table.api.bridge.scala.StreamTableEnvironment
 
 object MysqlOutput2 {
   def main(args: Array[String]): Unit = {
-    // 1. 创建环境
+    // 1. 创建表环境
     val env = StreamExecutionEnvironment.getExecutionEnvironment
     env.setParallelism(1)
 
@@ -22,20 +22,9 @@ object MysqlOutput2 {
         |temp DOUBLE
         |) WITH(
         |'connector' = 'filesystem',
-        |'path'      = '/Users/lemon/IdeaProjects/FlinkTutorial/src/main/resources/sensor.txt',
+        |'path'      = 'src/main/resources/sensor.txt',
         |'format'    = 'csv'
         |)""".stripMargin)
-
-    //    val outputPath = "E:\\FlinkProject\\src\\main\\resources\\output.txt"
-    //    tableEnv.executeSql("CREATE TABLE outputTable (" +
-    //      "  id STRING," +
-    //      "  timesp BIGINT," +
-    //      "  temp DOUBLE" +
-    //      ") WITH (" +
-    //      "  'connector' = 'filesystem'," +
-    //      "  'path' = 'outputPath'," +
-    //      "  'format' = 'csv'" +
-    //      ")")
 
     //Table API
     //3. 转换操作,转成 Table类
@@ -45,13 +34,14 @@ object MysqlOutput2 {
     val resultTable = sensorTable
       .select('id, 'timesp, 'temp)
       .filter('id === "sensor_1")
+
     //3.2 聚合转换
     val aggTable = sensorTable
       .filter('id === "sensor_1")
       .groupBy('id)
       .select('id, 'id.count as 'count, 'temp.sum as 'sum_temp)
 
-    //sqlQuery
+    //3.3 sqlQuery
     val aggTable2 = tableEnv.sqlQuery("""
                                         |select id, count(id) as cnt, sum(temp) as sum_temp
                                         |from inputTable
@@ -59,7 +49,7 @@ object MysqlOutput2 {
                                         |group by id
                                         |""".stripMargin)
 
-    //注册输出表-mysql
+    //4.1 注册输出表-mysql (TableSink)
     tableEnv.executeSql(
       """CREATE TABLE jdbcOutputTable(
         |id varchar(20) not null,
@@ -75,7 +65,7 @@ object MysqlOutput2 {
         |'password'   = 'vp^98*s$UpTRsebf'
         |)""".stripMargin)
 
-    //输出到文件
+    //4.2 注册输出表-文件 (TableSink)
     tableEnv.executeSql(
       """CREATE TABLE outputTable(
         |id STRING,
@@ -83,13 +73,25 @@ object MysqlOutput2 {
         |temp DOUBLE
         |) WITH(
         |'connector' = 'filesystem',
-        |'path'      = '/Users/lemon/IdeaProjects/FlinkTutorial/src/main/resources/output',
+        |'path'      = 'src/main/resources/output',
         |'format'    = 'csv'
         |)""".stripMargin)
 
+    //5.1 将3.1的查询结果插入到outputTable(输出到文件)
+    resultTable.executeInsert("outputTable")
+    //5.2 将3.3的查询结果插入到jdbcOutputTable(输出到Mysql)
+    //方法 Table.executeInsert(tableName)将 Table发送至已注册的TableSink,
+    // 该方法通过名称在 catalog中查找TableSink, 并确认Table schema 和 TableSink schema 一致.
     aggTable2.executeInsert("jdbcOutputTable")
 
-    resultTable.executeInsert("outputTable")
+    //直接将表环境里注册的输入表的Query查询结果插入到已注册的外部输出表(TableSink)
+    tableEnv.executeSql(
+      """insert into jdbcOutputTable
+        |select id, count(id) as cnt, sum(temp) as sum_temp
+        |from inputTable
+        |where id = 'sensor_1'
+        |group by id
+        |""".stripMargin)
 
   }
 }
