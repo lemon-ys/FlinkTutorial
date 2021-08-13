@@ -9,10 +9,9 @@ object MysqlOutput2 {
   def main(args: Array[String]): Unit = {
     // 1. 创建表环境
     val env = StreamExecutionEnvironment.getExecutionEnvironment
-    env.setParallelism(1)
-
     val settings = EnvironmentSettings.newInstance().useBlinkPlanner().inStreamingMode().build()
     val tableEnv = StreamTableEnvironment.create(env, settings)
+    env.setParallelism(1)
 
     // 2. 连接外部系统，读取数据，创建输入表
     tableEnv.executeSql(
